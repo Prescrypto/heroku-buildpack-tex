@@ -13,7 +13,6 @@ BIN_DIR=$(cd "$(dirname "$0")"; pwd) # absolute path
 # So exit the program in a hard way
 
 echo "DISABLE UPDATES ACTIVATED; PLEASE CHECK THE ENV VAR TO CHANGE IT"
-build-step "TeX Live installation successful!"
 exit 0
 
 TEXLIVE_REPOSITORY="http://mirror.ctan.org/systems/texlive/tlnet"
