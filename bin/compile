@@ -8,6 +8,11 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 BIN_DIR=$(cd "$(dirname "$0")"; pwd) # absolute path
 
+if [ "$DISABLE_TEX_UPDATES" == "True" ]; then
+    echo "DISABLE UPDATES ACTIVATED; PLEASE CHECK THE ENV VAR TO CHANGE IT"
+    build-step "TeX Live installation successful!"
+    exit 1
+fi
 
 TEXLIVE_REPOSITORY="http://mirror.ctan.org/systems/texlive/tlnet"
 
