@@ -8,6 +8,8 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 BIN_DIR=$(cd "$(dirname "$0")"; pwd) # absolute path
 
+echo "Reading DISABLE_TEX_UPDATES env var $DISABLE_TEX_UPDATES"
+
 if [ "$DISABLE_TEX_UPDATES" == "True" ]; then
     echo "DISABLE UPDATES ACTIVATED; PLEASE CHECK THE ENV VAR TO CHANGE IT"
     build-step "TeX Live installation successful!"
