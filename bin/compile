@@ -8,13 +8,13 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 BIN_DIR=$(cd "$(dirname "$0")"; pwd) # absolute path
 
-echo "Reading DISABLE_TEX_UPDATES env var $DISABLE_TEX_UPDATES"
+# buildpacks are not allowed to read env vars
+# https://elements.heroku.com/buildpacks/eduflow/heroku-buildpack-envvars
+# So exit the program in a hard way
 
-if [ "$DISABLE_TEX_UPDATES" == "True" ]; then
-    echo "DISABLE UPDATES ACTIVATED; PLEASE CHECK THE ENV VAR TO CHANGE IT"
-    build-step "TeX Live installation successful!"
-    exit 1
-fi
+echo "DISABLE UPDATES ACTIVATED; PLEASE CHECK THE ENV VAR TO CHANGE IT"
+build-step "TeX Live installation successful!"
+exit 1
 
 TEXLIVE_REPOSITORY="http://mirror.ctan.org/systems/texlive/tlnet"
 
