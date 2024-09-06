@@ -8,21 +8,14 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 BIN_DIR=$(cd "$(dirname "$0")"; pwd) # absolute path
 
-
-TEXLIVE_REPOSITORY="http://mirror.ctan.org/systems/texlive/tlnet"
-
-# TODO: remove this in future versions.
-# This is only kept for backwards support
-if [ -f "$BUILD_DIR/.texlive-repository" ]; then
-    TEXLIVE_REPOSITORY=$(cat "$BUILD_DIR/.texlive-repository")
-fi
-
-# Optional: use custom path to texlive installer
-if [ -f "$BUILD_DIR/texlive.repository" ]; then
-    TEXLIVE_REPOSITORY=$(cat "$BUILD_DIR/texlive.repository")
-fi
-
-TEXLIVE_INSTALLER_URL="$TEXLIVE_REPOSITORY/install-tl-unx.tar.gz"
+# Mirrors list
+MIRRORS=(
+    "http://mirror.ctan.org/systems/texlive/tlnet"
+    "https://ctan.math.illinois.edu/systems/texlive/tlnet"
+    "https://distrib-coffee.ipsl.jussieu.fr/pub/mirrors/ctan/systems/texlive/tlnet"
+    "https://mirrors.rit.edu/CTAN/systems/texlive/tlnet"
+    "http://ftp.math.utah.edu/pub/texlive/tlnet" 
+)
 
 TEXLIVE_HOME=$BUILD_DIR/.texlive
 TEXLIVE_CACHE=$CACHE_DIR/.texlive
@@ -43,44 +36,60 @@ if [ "$(ls -A "$TEXLIVE_CACHE")" ]; then
     cp -R "$TEXLIVE_CACHE/"* "$TEXLIVE_HOME"
 fi
 
-if [ ! -f "$TEXLIVE_HOME/install-tl" ]; then
-    build-step "Downloading install-tl..."
-    echo "Using $TEXLIVE_INSTALLER_URL"
-    curl "$TEXLIVE_INSTALLER_URL" -L -s -o - | tar --strip-components=1 -xzf - -C "$TEXLIVE_HOME"
-fi
+install_texlive() {
+    local TEXLIVE_REPOSITORY=$1
+    local TEXLIVE_INSTALLER_URL="$TEXLIVE_REPOSITORY/install-tl-unx.tar.gz"
 
-if [ ! "$(which pdflatex)" ]; then
-    build-step "Installing TeX Live..."
+    if [ ! -f "$TEXLIVE_HOME/install-tl" ]; then
+        build-step "Downloading install-tl from $TEXLIVE_REPOSITORY..."
+        echo "Using $TEXLIVE_INSTALLER_URL"
+        curl "$TEXLIVE_INSTALLER_URL" -L -s -o - | tar --strip-components=1 -xzf - -C "$TEXLIVE_HOME"
+    fi
 
-    PROF=$BIN_DIR/../conf/texlive.profile
-    {
-      echo "TEXDIR $TEXLIVE_HOME";
-      echo "TEXMFCONFIG $TEXLIVE_HOME/var/texmf-config";
-      echo "TEXMFHOME $TEXLIVE_HOME/var/texmf";
-      echo "TEXMFLOCAL $TEXLIVE_HOME/texmf-local";
-      echo "TEXMFSYSCONFIG $TEXLIVE_HOME/texmf-config";
-      echo "TEXMFSYSVAR $TEXLIVE_HOME/texmf-var";
-      echo "TEXMFVAR $TEXLIVE_HOME/var/texmf-var";
-    } >> "$PROF"
+    if [ ! "$(which pdflatex)" ]; then
+        build-step "Installing TeX Live..."
 
-    cd "$TEXLIVE_HOME"
+        PROF=$BIN_DIR/../conf/texlive.profile
+        {
+            echo "TEXDIR $TEXLIVE_HOME";
+            echo "TEXMFCONFIG $TEXLIVE_HOME/var/texmf-config";
+            echo "TEXMFHOME $TEXLIVE_HOME/var/texmf";
+            echo "TEXMFLOCAL $TEXLIVE_HOME/texmf-local";
+            echo "TEXMFSYSCONFIG $TEXLIVE_HOME/texmf-config";
+            echo "TEXMFSYSVAR $TEXLIVE_HOME/texmf-var";
+            echo "TEXMFVAR $TEXLIVE_HOME/var/texmf-var";
+        } >> "$PROF"
 
-    ./install-tl --repository="$TEXLIVE_REPOSITORY" --profile="$PROF"
-fi
+        cd "$TEXLIVE_HOME"
+
+        ./install-tl --repository="$TEXLIVE_REPOSITORY" --profile="$PROF"
+    fi
+}
+
+for MIRROR in "${MIRRORS[@]}"; do
+    if install_texlive "$MIRROR"; then
+        TEXLIVE_REPOSITORY="$MIRROR"
+        break
+    else
+        echo "Failed to install from $MIRROR, trying next mirror..."
+    fi
+done
 
 build-step "Updating TeX Live..."
 
 tlmgr option repository "$TEXLIVE_REPOSITORY"
-tlmgr update --self
+if ! tlmgr update --self; then
+    echo "Failed to update TeX Live from $TEXLIVE_REPOSITORY. Trying next mirror..."
+    continue
+fi
 
 # install user-provided-packages
 if [ -f "$BUILD_DIR/texlive.packages" ]; then
     build-step "Installing custom packages..."
-    # shellcheck disable=SC2046
     tlmgr install $(cat "$BUILD_DIR/texlive.packages")
 fi
 
-build-step "upgrading installed packages"
+build-step "Upgrading installed packages"
 tlmgr update --all --exclude hyphen-german
 
 build-step "Cleaning up temporary files..."
