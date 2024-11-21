@@ -69,19 +69,20 @@ install_texlive() {
 for MIRROR in "${MIRRORS[@]}"; do
     if install_texlive "$MIRROR"; then
         TEXLIVE_REPOSITORY="$MIRROR"
+        
+        build-step "Updating TeX Live..."
+        tlmgr option repository "$TEXLIVE_REPOSITORY"
+        if ! tlmgr update --self; then
+            echo "Failed to update TeX Live from $TEXLIVE_REPOSITORY. Trying next mirror..."
+            continue
+        fi
+
+        # Si la instalación y actualización son exitosas, salimos del bucle
         break
     else
         echo "Failed to install from $MIRROR, trying next mirror..."
     fi
 done
-
-build-step "Updating TeX Live..."
-
-tlmgr option repository "$TEXLIVE_REPOSITORY"
-if ! tlmgr update --self; then
-    echo "Failed to update TeX Live from $TEXLIVE_REPOSITORY. Trying next mirror..."
-    continue
-fi
 
 # install user-provided-packages
 if [ -f "$BUILD_DIR/texlive.packages" ]; then
