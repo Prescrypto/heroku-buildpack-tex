@@ -69,7 +69,6 @@ install_texlive() {
 for MIRROR in "${MIRRORS[@]}"; do
     if install_texlive "$MIRROR"; then
         TEXLIVE_REPOSITORY="$MIRROR"
-        
         build-step "Updating TeX Live..."
         tlmgr option repository "$TEXLIVE_REPOSITORY"
         if ! tlmgr update --self; then
