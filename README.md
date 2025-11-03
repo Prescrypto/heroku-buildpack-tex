@@ -30,7 +30,8 @@ heroku buildpacks:add git://github.com/Thermondo/heroku-buildpack-tex.git#VERSIO
 
 *   In this form, it uses [install-tl][install-tl] it installs a working
     TeX Live into your application into your Heroku app.
-*   It installs `scheme-small` to have a working minimal setup.
+*   It installs `scheme-basic` with Spanish language support for a minimal
+    setup optimized for Spanish characters.
 *   It uses [tlmgr][tlmgr] to install custom
     packages.
 *   On subsequent pushes it uses [tlmgr][tlmgr] to update all installed
