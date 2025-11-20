@@ -75,7 +75,11 @@ if [ ! "$(which pdflatex)" ]; then
     # Install latexmk after base installation
     build-step "Installing latexmk..."
     tlmgr option repository "$TEXLIVE_REPOSITORY"
-    tlmgr install latexmk --no-depends-at-all
+    tlmgr install latexmk
+    # Verify latexmk is available
+    if [ ! "$(which latexmk)" ]; then
+        build-warn "latexmk installation may have failed"
+    fi
 fi
 
 build-step "Updating TeX Live..."
