@@ -1,7 +1,9 @@
+# This is an example profile for reference only. The buildpack uses conf/texlive.profile.
 selected_scheme scheme-basic
 binary_x86_64-linux 1
 collection-latex 1
 collection-langspanish 1
+latexmk 1
 option_adjustrepo 1
 option_autobackup 0
 option_backupdir tlpkg/backups
