@@ -71,6 +71,11 @@ if [ ! "$(which pdflatex)" ]; then
     cd "$TEXLIVE_HOME"
 
     ./install-tl --repository="$TEXLIVE_REPOSITORY" --profile="$PROF"
+    
+    # Install latexmk after base installation
+    build-step "Installing latexmk..."
+    tlmgr option repository "$TEXLIVE_REPOSITORY"
+    tlmgr install latexmk --no-depends-at-all
 fi
 
 build-step "Updating TeX Live..."
