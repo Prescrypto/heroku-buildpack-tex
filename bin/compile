@@ -81,9 +81,9 @@ if [ ! "$(which pdflatex)" ]; then
         build-warn "latexmk installation may have failed"
     fi
     
-    # Install bibtex for bibliography processing
-    build-step "Installing bibtex..."
-    tlmgr install bibtex
+    # Install bibtex for bibliography processing and booktabs for professional tables
+    build-step "Installing bibtex and booktabs..."
+    tlmgr install bibtex booktabs
 fi
 
 build-step "Updating TeX Live..."
