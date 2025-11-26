@@ -57,8 +57,12 @@ install_texlive() {
     if [ ! "$(which pdflatex)" ]; then
         build-step "Installing TeX Live..."
 
-        PROF=$BIN_DIR/../conf/texlive.profile
+        # Create temporary profile with original content + TEXDIR settings
+        # This prevents duplicates if multiple mirrors are tried
+        PROF_SOURCE=$BIN_DIR/../conf/texlive.profile
+        PROF="$TEXLIVE_HOME/install.profile"
         {
+            cat "$PROF_SOURCE"
             echo "TEXDIR $TEXLIVE_HOME";
             echo "TEXMFCONFIG $TEXLIVE_HOME/var/texmf-config";
             echo "TEXMFHOME $TEXLIVE_HOME/var/texmf";
@@ -66,7 +70,7 @@ install_texlive() {
             echo "TEXMFSYSCONFIG $TEXLIVE_HOME/texmf-config";
             echo "TEXMFSYSVAR $TEXLIVE_HOME/texmf-var";
             echo "TEXMFVAR $TEXLIVE_HOME/var/texmf-var";
-        } >> "$PROF"
+        } > "$PROF"
 
         cd "$TEXLIVE_HOME"
 
