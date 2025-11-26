@@ -58,7 +58,6 @@ install_texlive() {
         build-step "Installing TeX Live..."
 
         PROF=$BIN_DIR/../conf/texlive.profile
-        # Use > instead of >> to avoid appending multiple times if function is called multiple times
         {
             echo "TEXDIR $TEXLIVE_HOME";
             echo "TEXMFCONFIG $TEXLIVE_HOME/var/texmf-config";
@@ -67,7 +66,7 @@ install_texlive() {
             echo "TEXMFSYSCONFIG $TEXLIVE_HOME/texmf-config";
             echo "TEXMFSYSVAR $TEXLIVE_HOME/texmf-var";
             echo "TEXMFVAR $TEXLIVE_HOME/var/texmf-var";
-        } > "$PROF"
+        } >> "$PROF"
 
         cd "$TEXLIVE_HOME"
 
