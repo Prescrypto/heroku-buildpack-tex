@@ -9,11 +9,7 @@ CACHE_DIR=$2
 BIN_DIR=$(cd "$(dirname "$0")"; pwd) # absolute path
 
 # Mirrors list
-# NOTE: First two mirrors are invalid for testing fallback mechanism
-# Remove them after testing to restore normal operation
 MIRRORS=(
-    "http://invalid-mirror-that-does-not-exist.com/tlnet"
-    "http://another-invalid-mirror.example.com/tlnet"
     "http://mirror.ctan.org/systems/texlive/tlnet"
     "https://ctan.math.illinois.edu/systems/texlive/tlnet"
     "https://distrib-coffee.ipsl.jussieu.fr/pub/mirrors/ctan/systems/texlive/tlnet"
