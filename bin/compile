@@ -39,17 +39,26 @@ fi
 install_texlive() {
     local TEXLIVE_REPOSITORY=$1
     local TEXLIVE_INSTALLER_URL="$TEXLIVE_REPOSITORY/install-tl-unx.tar.gz"
+    
+    # Temporarily disable set -e to handle errors gracefully
+    set +e
 
     if [ ! -f "$TEXLIVE_HOME/install-tl" ]; then
         build-step "Downloading install-tl from $TEXLIVE_REPOSITORY..."
         echo "Using $TEXLIVE_INSTALLER_URL"
-        curl "$TEXLIVE_INSTALLER_URL" -L -s -o - | tar --strip-components=1 -xzf - -C "$TEXLIVE_HOME"
+        # Use -f flag to fail on HTTP errors, and check if curl/tar succeed
+        curl "$TEXLIVE_INSTALLER_URL" -L -s -f -o - | tar --strip-components=1 -xzf - -C "$TEXLIVE_HOME"
+        if [ $? -ne 0 ]; then
+            set -e
+            return 1  # Failed to download/extract
+        fi
     fi
 
     if [ ! "$(which pdflatex)" ]; then
         build-step "Installing TeX Live..."
 
         PROF=$BIN_DIR/../conf/texlive.profile
+        # Use > instead of >> to avoid appending multiple times if function is called multiple times
         {
             echo "TEXDIR $TEXLIVE_HOME";
             echo "TEXMFCONFIG $TEXLIVE_HOME/var/texmf-config";
@@ -58,13 +67,25 @@ install_texlive() {
             echo "TEXMFSYSCONFIG $TEXLIVE_HOME/texmf-config";
             echo "TEXMFSYSVAR $TEXLIVE_HOME/texmf-var";
             echo "TEXMFVAR $TEXLIVE_HOME/var/texmf-var";
-        } >> "$PROF"
+        } > "$PROF"
 
         cd "$TEXLIVE_HOME"
 
+        # Check if installation succeeds
         ./install-tl --repository="$TEXLIVE_REPOSITORY" --profile="$PROF"
+        if [ $? -ne 0 ]; then
+            set -e
+            return 1  # Installation failed
+        fi
     fi
+    
+    # Re-enable set -e
+    set -e
+    return 0  # Success
 }
+
+# Default to first mirror if installation already exists from cache
+TEXLIVE_REPOSITORY="${MIRRORS[0]}"
 
 for MIRROR in "${MIRRORS[@]}"; do
     if install_texlive "$MIRROR"; then
