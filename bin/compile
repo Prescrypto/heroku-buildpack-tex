@@ -105,6 +105,24 @@ for MIRROR in "${MIRRORS[@]}"; do
     fi
 done
 
+# After the mirror loop, ensure tlmgr uses the correct repository
+# If installation already existed, try to find a compatible mirror
+if [ "$(which pdflatex)" ] && [ "$TEXLIVE_REPOSITORY" = "${MIRRORS[0]}" ]; then
+    # Installation exists but we didn't go through the loop
+    # Try to find a compatible mirror
+    for MIRROR in "${MIRRORS[@]}"; do
+        build-step "Checking compatibility with $MIRROR..."
+        tlmgr option repository "$MIRROR"
+        if tlmgr update --self --dry-run >/dev/null 2>&1; then
+            TEXLIVE_REPOSITORY="$MIRROR"
+            break
+        fi
+    done
+fi
+
+build-step "Configuring tlmgr repository..."
+tlmgr option repository "$TEXLIVE_REPOSITORY"
+
 # install user-provided-packages
 if [ -f "$BUILD_DIR/texlive.packages" ]; then
     build-step "Installing custom packages..."
